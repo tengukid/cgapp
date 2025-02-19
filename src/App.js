@@ -88,11 +88,13 @@ const CounterContainer = styled.div`
 const Counter = () => {
   const [count, setCount] = useState(0);
 
-  const handleIncrement = () => {
+  const handleIncrement = (event) => {
+    event.stopPropagation();
     setCount(count + 1);
   };
 
-  const handleDecrement = () => {
+  const handleDecrement = (event) => {
+    event.stopPropagation();
     setCount(count - 1);
   };
 
@@ -108,6 +110,7 @@ const Counter = () => {
 const App = () => {
   const [characters, setCharacters] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [favorites, setFavorites] = useState([]);
   const [flipped, setFlipped] = useState({});
 
   useEffect(() => {
@@ -129,6 +132,14 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
+  const toggleFavorite = (character) => {
+    setFavorites((prevFavorites) =>
+      prevFavorites.some((fav) => fav._id === character._id)
+        ? prevFavorites.filter((fav) => fav._id !== character._id)
+        : [...prevFavorites, character]
+    );
+  };
+
   const handleFlip = (id) => {
     setFlipped((prevState) => ({
       ...prevState,
@@ -144,11 +155,10 @@ const App = () => {
     <div>
       <SearchBar
         type="text"
-        placeholder="Search movies..."
+        placeholder="Search characters..."
         value={searchTerm}
         onChange={handleSearch}
       />
-      <FilteredCharacterList characters={filteredCharacters} />
       <GridContainer>
         {filteredCharacters.map((character) => (
           <GridItem key={character._id} onClick={() => handleFlip(character._id)}>
@@ -156,6 +166,12 @@ const App = () => {
               <FlipFront>
                 <MovieImage src={character.imageUrl} alt={character.name} />
                 <h3>{character.name}</h3>
+                <button
+                  onClick={() => toggleFavorite(character)}
+                  className={`p-2 rounded ${favorites.some(fav => fav._id === character._id) ? 'bg-yellow-500' : 'bg-blue-500'} text-white`}
+                >
+                  {favorites.some(fav => fav._id === character._id) ? 'Remove from Favorites' : 'Add to Favorites'}
+                </button>
               </FlipFront>
               <FlipBack>
                 <h3>{character.name}</h3>
@@ -167,16 +183,6 @@ const App = () => {
         ))}
       </GridContainer>
     </div>
-  );
-};
-
-const FilteredCharacterList = ({ characters }) => {
-  return (
-    <ListGridContainer>
-      {characters.map((character) => (
-        <ListGridItem key={character._id}>{character.name}</ListGridItem>
-      ))}
-    </ListGridContainer>
   );
 };
 
